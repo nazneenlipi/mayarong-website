@@ -1,0 +1,107 @@
+===========================================
+MAYA RANG - ENVIRONMENT VARIABLES GUIDE
+===========================================
+
+FRONTEND SETUP (.env.local in apps/web/)
+==========================================
+
+1. NEXT_PUBLIC_API_URL
+   - Purpose: Backend API endpoint
+   - Example: http://localhost:3001
+   - Production: https://your-backend-api.com
+
+2. NEXTAUTH_SECRET
+   - Purpose: Encryption secret for authentication
+   - Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   - Min length: 32 characters
+
+3. NEXTAUTH_URL
+   - Purpose: Frontend URL for authentication callback
+   - Development: http://localhost:3000
+   - Production: https://your-domain.com
+
+BACKEND SETUP (.env in apps/backend/)
+======================================
+
+1. DATABASE_URL
+   - Purpose: MongoDB connection string
+   - Local: mongodb://localhost:27017/mayarang
+   - MongoDB Atlas: mongodb+srv://user:password@cluster.mongodb.net/mayarang?retryWrites=true&w=majority
+
+2. PORT
+   - Purpose: Backend server port
+   - Default: 3001
+   - Ensure frontend NEXT_PUBLIC_API_URL matches this port
+
+3. JWT_SECRET
+   - Purpose: JWT token signing secret
+   - Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   - Min length: 32 characters
+
+4. NODE_ENV
+   - Purpose: Environment mode
+   - Values: development | production
+   - Default: development
+
+5. CORS_ORIGIN
+   - Purpose: Frontend URL allowed to make requests
+   - Development: http://localhost:3000
+   - Production: https://your-domain.com
+
+SETUP INSTRUCTIONS
+==================
+
+Step 1: Generate Secrets
+- Open terminal and run these commands to generate secure secrets:
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  (Run twice, use outputs for NEXTAUTH_SECRET and JWT_SECRET)
+
+Step 2: Create Frontend .env.local
+- Navigate to apps/web/
+- Create file: .env.local
+- Add:
+  NEXT_PUBLIC_API_URL=http://localhost:3001
+  NEXTAUTH_SECRET=[generated-secret-1]
+  NEXTAUTH_URL=http://localhost:3000
+
+Step 3: Create Backend .env
+- Navigate to apps/backend/
+- Create file: .env
+- Add:
+  DATABASE_URL=mongodb://localhost:27017/mayarang
+  PORT=3001
+  JWT_SECRET=[generated-secret-2]
+  NODE_ENV=development
+  CORS_ORIGIN=http://localhost:3000
+
+Step 4: Install Dependencies
+- Frontend: cd apps/web && npm install
+- Backend: cd apps/backend && npm install
+
+Step 5: Start Development
+- Frontend: cd apps/web && npm run dev (port 3000)
+- Backend: cd apps/backend && npm run dev (port 3001)
+
+MONGODB SETUP
+=============
+
+Local Development:
+1. Install MongoDB Community Edition from mongodb.com
+2. Start MongoDB service: mongod
+3. Use connection string: mongodb://localhost:27017/mayarang
+
+Cloud Development (MongoDB Atlas):
+1. Create account at mongodb.com
+2. Create free cluster
+3. Get connection string
+4. Update DATABASE_URL in apps/backend/.env
+5. Whitelist your IP in MongoDB Atlas security settings
+
+COLOR PALETTE (For Reference)
+==============================
+
+Primary (MAYA RANG Pink): #E91E63
+Accent (Gold): #FFD700
+Dark: #030712 (Neutral-950)
+Light: #F9FAFB (Neutral-50)
+Gray: #6B7280 (Neutral-500)
