@@ -73,6 +73,13 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-bounce-slow: bounce-slow 10s infinite ease-in-out;
+
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-30px); }
+  }
 }
 
 /* ৩. Global Styles */
