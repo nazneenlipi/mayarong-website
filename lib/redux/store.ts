@@ -1,14 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit"
-import ratingsReducer from "./slices/ratingsSlice"
-import popularProductsReducer from "./slices/popularProductsSlice"
-import reviewsReducer from "./slices/reviewsSlice"
+import authReducer from "./slices/authSlice"
+import cartReducer from "./slices/cartSlice"
+import { apiSlice } from "./api/apiSlice"
 
 export const store = configureStore({
   reducer: {
-    ratings: ratingsReducer,
-    popularProducts: popularProductsReducer,
-    reviews: reviewsReducer,
+    auth: authReducer,
+    cart: cartReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>

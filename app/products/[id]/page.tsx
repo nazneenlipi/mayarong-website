@@ -7,109 +7,53 @@ import { GlassyButton } from "@/components/glassy-button"
 import Image from "next/image"
 import { Heart, Share2, ShoppingCart, Star } from "lucide-react"
 import { useState } from "react"
-import { useParams } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-
-const ALL_PRODUCTS = [
-  {
-    id: 1,
-    name: "Elegant Leather Watch",
-    category: "watches",
-    price: 15999,
-    image: "/elegant-leather-watch-premium.jpg",
-    rating: 4.8,
-    reviews: 124,
-    badge: "New",
-    description: "A timeless piece with premium leather strap and precise movement.",
-    details: "Leather strap, Water resistant, Japanese movement, 2-year warranty",
-    colors: ["Black", "Brown", "Tan"],
-  },
-  {
-    id: 2,
-    name: "Classic Brown Shoulder Bag",
-    category: "bags",
-    price: 8999,
-    image: "/brown-leather-shoulder-bag.jpg",
-    rating: 4.6,
-    reviews: 89,
-    badge: "Popular",
-    description: "Spacious and stylish shoulder bag perfect for everyday use.",
-    details: "Genuine leather, Adjustable strap, Interior pockets, Durable hardware",
-    colors: ["Brown", "Black", "Tan"],
-  },
-  {
-    id: 3,
-    name: "Digital Smart Watch",
-    category: "watches",
-    price: 18999,
-    image: "/smart-watch-digital-premium.jpg",
-    rating: 4.9,
-    reviews: 156,
-    badge: "Best Seller",
-    description: "Advanced smartwatch with fitness tracking and notifications.",
-    details: "AMOLED display, Heart rate monitor, 7-day battery, iOS/Android compatible",
-    colors: ["Black", "Silver", "Gold"],
-  },
-  {
-    id: 4,
-    name: "Elegant Crossbody Bag",
-    category: "bags",
-    price: 12999,
-    image: "/crossbody-bag-elegant-design.jpg",
-    rating: 4.7,
-    reviews: 98,
-    description: "Lightweight crossbody bag with elegant design and functional pockets.",
-    details: "Synthetic leather, Adjustable strap, RFID protection, Lightweight",
-    colors: ["Black", "Red", "Navy"],
-  },
-  {
-    id: 5,
-    name: "Chronograph Steel Watch",
-    category: "watches",
-    price: 22999,
-    image: "/chronograph-watch-steel-luxury.jpg",
-    rating: 4.9,
-    reviews: 167,
-    badge: "Luxury",
-    description: "Premium chronograph with steel case and professional specifications.",
-    details: "Stainless steel, Chronograph function, Sapphire crystal, 5-year warranty",
-    colors: ["Silver", "Black", "Gold"],
-  },
-  {
-    id: 6,
-    name: "Premium Tote Bag",
-    category: "bags",
-    price: 11999,
-    image: "/premium-tote-bag-leather.jpg",
-    rating: 4.8,
-    reviews: 112,
-    description: "Spacious tote bag suitable for work and travel.",
-    details: "Premium leather, Double handles, Laptop compartment, Interior organization",
-    colors: ["Black", "Brown", "Cream"],
-  },
-]
+import { useParams, useRouter } from "next/navigation"
+import { useGetProductQuery, useGetProductsQuery } from "@/lib/redux/api/apiSlice"
+import { useDispatch, useSelector } from "react-redux"
+import { addToCart } from "@/lib/redux/slices/cartSlice"
+import type { RootState } from "@/lib/redux/store"
+import { Loader } from "@/components/ui/loader"
 
 export default function ProductDetailsPage() {
   const params = useParams()
-  const productId = Number(params.id)
-  const product = ALL_PRODUCTS.find((p) => p.id === productId)
-  const { data: session } = useSession()
+  const productId = params.id as string
+  const { data: product, isLoading: isLoadingProduct, error } = useGetProductQuery(productId)
+  const { data: allProducts = [] } = useGetProductsQuery()
+  const { user } = useSelector((state: RootState) => state.auth)
+  const dispatch = useDispatch()
   const router = useRouter()
-  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || "Black")
+  // Default to first color if available, or "Black"
+  const [selectedColor, setSelectedColor] = useState("Black")
   const [quantity, setQuantity] = useState(1)
 
-  const relatedProducts = ALL_PRODUCTS.filter((p) => p.id !== productId).slice(0, 3)
+  // Update selected color when product loads if needed (optional useEffect)
+
+  const relatedProducts = allProducts.filter((p) => p.id !== Number(productId)).slice(0, 3)
 
   const handleAddToCart = () => {
-    if (!session) {
-      router.push("/login")
-      return
-    }
-    // Add to cart logic here
+    if (!product) return
+
+    dispatch(addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: quantity
+    }))
+    
+    // Optional feedback
+    // alert("Added to cart")
   }
 
-  if (!product) {
+  if (isLoadingProduct) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader size="lg" />
+      </div>
+    )
+  }
+
+  if (error || !product) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -120,6 +64,9 @@ export default function ProductDetailsPage() {
       </div>
     )
   }
+
+  // Effect to set initial color if needed, or rely on conditional rendering below
+  const colors = product.colors || ["Standard"]
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -164,7 +111,7 @@ export default function ProductDetailsPage() {
               <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4">Available Colors</h3>
                 <div className="flex gap-3">
-                  {product.colors.map((color) => (
+                  {(product.colors || ["Standard"]).map((color) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}

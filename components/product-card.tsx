@@ -22,20 +22,31 @@ interface ProductCardProps {
   onAddToCart?: (product: any) => void
 }
 
+import { useDispatch } from "react-redux"
+import { addToCart } from "@/lib/redux/slices/cartSlice"
+import { useToast } from "@/components/ui/use-toast" // Assuming toast exists, otherwise simple alert or skip
+
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const { data: session } = useSession()
   const router = useRouter()
+  const dispatch = useDispatch()
   const [isFavorite, setIsFavorite] = useState(false)
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (!session) {
-      router.push("/login")
-      return
-    }
-    if (onAddToCart) {
-      onAddToCart(product)
-    }
+    // Optional: Check login if required, but cart usually works without login
+    // if (!session) { router.push("/login"); return } 
+    
+    dispatch(addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    }))
+    
+    // Fallback if toast not available or use simple confirm log
+    // console.log("Added to cart")
   }
 
   return (

@@ -5,15 +5,19 @@ import { Footer } from "@/components/footer"
 import { ProductCard } from "@/components/product-card"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ALL_PRODUCTS, ITEMS_PER_PAGE } from "@/lib/constants/products"
+import { ITEMS_PER_PAGE } from "@/lib/constants/products"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useGetProductsQuery } from "@/lib/redux/api/apiSlice"
+import { Loader } from "@/components/ui/loader"
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [priceRange, setPriceRange] = useState(50000)
   const [currentPage, setCurrentPage] = useState(1)
 
-  const filteredProducts = ALL_PRODUCTS.filter((p) => {
+  const { data: products = [], isLoading, error } = useGetProductsQuery()
+
+  const filteredProducts = products.filter((p) => {
     const categoryMatch = selectedCategory === "all" || p.category === selectedCategory
     const priceMatch = p.price <= priceRange
     return categoryMatch && priceMatch
@@ -22,6 +26,22 @@ export default function ProductsPage() {
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
   const paginatedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader size="lg" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl text-red-500">Error loading products</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

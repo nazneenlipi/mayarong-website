@@ -3,19 +3,22 @@
 import type React from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { useSelector, useDispatch } from "react-redux"
-import type { RootState } from "@/lib/redux/store"
-import { addReview } from "@/lib/redux/slices/reviewsSlice"
+import { useGetReviewsQuery, useAddReviewMutation, type Review } from "@/lib/redux/api/apiSlice"
 import { Button } from "@/components/ui/button"
-import { Star, Upload, Trash2 } from "lucide-react"
+import { Star } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
+import { useSelector } from "react-redux"
+import type { RootState } from "@/lib/redux/store"
+import { ImageUpload } from "@/components/ui/image-upload"
+import { Loader } from "@/components/ui/loader"
 
 export default function RatingsPage() {
-  const dispatch = useDispatch()
-  const reviews = useSelector((state: RootState) => state.reviews.reviews)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { data: reviews = [], isLoading } = useGetReviewsQuery(undefined)
+  const [addReview, { isLoading: isAdding }] = useAddReviewMutation()
+  
+  const { token } = useSelector((state: RootState) => state.auth)
+  const isLoggedIn = !!token
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,20 +28,7 @@ export default function RatingsPage() {
     imageUrl: "",
   })
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const preview = reader.result as string
-        setImagePreview(preview)
-        setFormData({ ...formData, imageUrl: preview })
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!isLoggedIn) {
@@ -47,25 +37,27 @@ export default function RatingsPage() {
     }
 
     if (formData.name && formData.comment) {
-      dispatch(
-        addReview({
-          id: Date.now().toString(),
+      try {
+        await addReview({
           name: formData.name,
           email: formData.email,
           rating: formData.rating,
           comment: formData.comment,
           imageUrl: formData.imageUrl,
-          createdAt: new Date().toISOString(),
-        }),
-      )
-      setFormData({
-        name: "",
-        email: "",
-        rating: 5,
-        comment: "",
-        imageUrl: "",
-      })
-      setImagePreview(null)
+          // Server should handle ID and createdAt
+        }).unwrap()
+        
+        setFormData({
+          name: "",
+          email: "",
+          rating: 5,
+          comment: "",
+          imageUrl: "",
+        })
+      } catch (err) {
+        console.error("Failed to add review", err)
+        alert("Failed to add review")
+      }
     }
   }
 
@@ -97,6 +89,7 @@ export default function RatingsPage() {
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full border border-primary/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="Enter your name"
+                      disabled={isAdding}
                     />
                   </div>
                   <div>
@@ -108,6 +101,7 @@ export default function RatingsPage() {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full border border-primary/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="your@email.com"
+                      disabled={isAdding}
                     />
                   </div>
                 </div>
@@ -121,6 +115,7 @@ export default function RatingsPage() {
                         type="button"
                         onClick={() => setFormData({ ...formData, rating: star })}
                         className="focus:outline-none transition-transform hover:scale-110"
+                        disabled={isAdding}
                       >
                         <Star
                           className={`w-8 h-8 transition-colors ${
@@ -140,45 +135,25 @@ export default function RatingsPage() {
                     onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
                     className="w-full border border-primary/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary h-32 resize-none"
                     placeholder="Share your detailed review..."
+                    disabled={isAdding}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold mb-3">Add Photo (Optional)</label>
-                  <div className="flex items-center gap-4">
-                    <label className="rounded-lg border border-accent/30 bg-gradient-to-r from-accent/40 to-accent/20 px-6 py-3 font-semibold text-foreground shadow-lg transition-all duration-300 backdrop-blur-md hover:from-accent/50 hover:to-accent/30 active:scale-95 cursor-pointer inline-flex items-center gap-2">
-                      <Upload className="w-4 h-4" />
-                      Upload Image
-                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                    </label>
-                    {imagePreview && (
-                      <div className="relative w-24 h-24">
-                        <Image
-                          src={imagePreview || "/placeholder.svg"}
-                          alt="Preview"
-                          fill
-                          className="object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setImagePreview(null)
-                            setFormData({ ...formData, imageUrl: "" })
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                   <ImageUpload 
+                        value={formData.imageUrl} 
+                        onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                        disabled={isAdding}
+                    />
                 </div>
 
                 <Button
                   type="submit"
+                  disabled={isAdding}
                   className="w-full rounded-lg border border-primary/30 bg-gradient-to-r from-primary/40 to-primary/20 px-6 py-3 font-semibold text-primary shadow-lg transition-all duration-300 backdrop-blur-md hover:from-primary/50 hover:to-primary/30 active:scale-95 text-lg"
                 >
-                  Submit Review
+                  {isAdding ? <Loader size="sm" /> : "Submit Review"}
                 </Button>
               </form>
             </div>
@@ -196,12 +171,14 @@ export default function RatingsPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-primary">Customer Reviews ({reviews.length})</h2>
             </div>
-            {reviews.length === 0 ? (
+            {isLoading ? (
+               <Loader size="lg" className="py-12" />
+            ) : reviews.length === 0 ? (
               <div className="rounded-xl border border-white/20 bg-white/30 backdrop-blur-md p-12 text-center">
                 <p className="text-lg text-foreground/60">No reviews yet. Be the first to share your experience!</p>
               </div>
             ) : (
-              reviews.map((review) => (
+              reviews.map((review: Review) => (
                 <div key={review.id} className="rounded-xl border border-white/20 bg-white/30 backdrop-blur-md p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -242,3 +219,4 @@ export default function RatingsPage() {
     </div>
   )
 }
+

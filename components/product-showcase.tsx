@@ -3,15 +3,24 @@
 import { useState } from "react"
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
-import { ALL_PRODUCTS } from "@/lib/constants/products"
+import { useGetProductsQuery } from "@/lib/redux/api/apiSlice"
 
 export function ProductShowcase() {
   const [selectedCategory, setSelectedCategory] = useState("all")
+  const { data: products = [], isLoading, error } = useGetProductsQuery()
+
+  if (isLoading) {
+    return <div className="py-16 text-center">Loading products...</div>
+  }
+
+  if (error) {
+    return <div className="py-16 text-center text-red-500">Error loading products</div>
+  }
 
   const filteredProducts =
     selectedCategory === "all"
-      ? ALL_PRODUCTS.slice(0, 6)
-      : ALL_PRODUCTS.filter((p) => p.category === selectedCategory).slice(0, 6)
+      ? products.slice(0, 6)
+      : products.filter((p) => p.category === selectedCategory).slice(0, 6)
 
   return (
     <section className="py-16 md:py-24 bg-background">

@@ -6,16 +6,20 @@ import Link from "next/link"
 import { GlassyButton } from "@/components/glassy-button"
 import { Mail, Lock, User } from "lucide-react"
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { useRegisterMutation } from "@/lib/redux/api/apiSlice"
+import { useDispatch } from "react-redux"
+import { setCredentials } from "@/lib/redux/slices/authSlice"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const dispatch = useDispatch()
+
+  const [register, { isLoading }] = useRegisterMutation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,16 +27,14 @@ export default function RegisterPage() {
       alert("Passwords don't match")
       return
     }
-    setIsLoading(true)
-    // In production, you'd send this to a backend API to create the account
-    // For now, we'll use demo credentials
-    await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
-    setIsLoading(false)
-    router.push("/")
+
+    try {
+       const userData = await register({ name, email, password }).unwrap()
+       dispatch(setCredentials({ user: userData.user, token: userData.token }))
+       router.push("/")
+    } catch (err: any) {
+      alert(err?.data?.message || "Registration failed")
+    }
   }
 
   return (

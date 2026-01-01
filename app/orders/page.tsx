@@ -1,28 +1,20 @@
-"use client"
-
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-
-const DUMMY_ORDERS = [
-  { id: "ORD001", date: "2025-01-15", total: 15999, status: "Delivered", items: 1 },
-  { id: "ORD002", date: "2025-01-12", total: 28998, status: "Delivered", items: 2 },
-  { id: "ORD003", date: "2025-01-10", total: 12999, status: "Processing", items: 1 },
-  { id: "ORD004", date: "2025-01-08", total: 34998, status: "Shipped", items: 3 },
-  { id: "ORD005", date: "2025-01-05", total: 8999, status: "Delivered", items: 1 },
-  { id: "ORD006", date: "2025-01-02", total: 22998, status: "Delivered", items: 2 },
-]
+import { useGetMyOrdersQuery, type Order } from "@/lib/redux/api/apiSlice"
+import { Loader } from "@/components/ui/loader"
 
 const ITEMS_PER_PAGE = 5
 
 export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1)
+  const { data: orders = [], isLoading } = useGetMyOrdersQuery(undefined)
 
-  const totalPages = Math.ceil(DUMMY_ORDERS.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const paginatedOrders = DUMMY_ORDERS.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  const paginatedOrders = orders.slice(startIndex, startIndex + ITEMS_PER_PAGE)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -32,7 +24,9 @@ export default function OrdersPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-primary mb-8">My Orders</h1>
 
-          {paginatedOrders.length === 0 ? (
+          {isLoading ? (
+            <Loader size="lg" className="py-12" />
+          ) : orders.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-foreground/60 mb-4">No orders yet</p>
               <a
@@ -45,7 +39,7 @@ export default function OrdersPage() {
           ) : (
             <>
               <div className="space-y-4">
-                {paginatedOrders.map((order) => (
+                {paginatedOrders.map((order: Order) => (
                   <div
                     key={order.id}
                     className="bg-white rounded-lg border border-primary/20 p-6 hover:shadow-lg transition"
@@ -111,6 +105,7 @@ export default function OrdersPage() {
               )}
             </>
           )}
+
         </div>
       </main>
 

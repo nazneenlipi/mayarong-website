@@ -6,37 +6,43 @@ import { GlassyButton } from "@/components/glassy-button"
 import { Mail, Lock } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useLoginMutation } from "@/lib/redux/api/apiSlice"
+import { useDispatch } from "react-redux"
+import { setCredentials } from "@/lib/redux/slices/authSlice"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const dispatch = useDispatch()
+
+  const [login, { isLoading }] = useLoginMutation()
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setIsLoading(true)
 
     try {
-      // Demo login - in production use NextAuth
       if (email && password.length >= 6) {
-        localStorage.setItem("maya_rang_user", email)
-        router.push("/")
+        const userData = await login({ email, password }).unwrap()
+        dispatch(setCredentials({ user: userData.user, token: userData.token }))
+        dispatch(setCredentials({ user: userData.user, token: userData.token }))
+        if (userData.user.role === "admin") {
+          router.push("/admin")
+        } else {
+          router.push("/")
+        }
       } else {
         setError("Email and password (min 6 chars) required")
       }
-    } finally {
-      setIsLoading(false)
+    } catch (err: any) {
+      setError(err?.data?.message || "Login failed")
     }
   }
 
   const handleGoogleLogin = () => {
-    // Demo Google login - in production use NextAuth
-    const demoEmail = "user@mayarang.com"
-    localStorage.setItem("maya_rang_user", demoEmail)
-    router.push("/")
+      alert("Google Login requires backend integration. Please use email/password.")
   }
 
   return (
