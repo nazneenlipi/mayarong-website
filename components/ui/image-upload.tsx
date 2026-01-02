@@ -42,10 +42,14 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
 
         const data = await response.json()
         // Backend returns 'url' field, not 'secure_url'
-        onChange(data.url || data.secure_url)
+        const url_res = data.url || data.secure_url
+        if (!url_res) {
+             throw new Error("Invalid response from server")
+        }
+        onChange(url_res)
     } catch (error: any) {
-        console.error("Upload error:", error)
-        alert(`Upload Failed: ${error.message}`)
+        console.error("Upload error details:", error)
+        alert(`Upload Failed: ${error.message || "Unknown error"}`)
     } finally {
         setIsLoading(false)
         if (fileInputRef.current) {

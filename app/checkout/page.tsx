@@ -62,8 +62,23 @@ export default function CheckoutPage() {
         totalAmount: totalPrice
       }
 
-      await createOrder(orderData).unwrap()
+      const result = await createOrder(orderData).unwrap()
       dispatch(clearCart())
+
+      // Redirect to WhatsApp
+      const message = `Hello MAYA RANG, I just placed an order (ID: ${result.data?.id || "New"}).
+      
+Items:
+${cartItems.map(item => `- ${item.name} x${item.quantity}`).join('\n')}
+
+Total: ₹${totalPrice.toLocaleString("en-IN")}
+Address: ${formData.street}, ${formData.city}
+
+Please confirm my order.`
+      
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=8801606208313&text=${encodeURIComponent(message)}`
+      window.open(whatsappUrl, "_blank")
+
     } catch (err) {
       console.error("Failed to create order:", err)
     }

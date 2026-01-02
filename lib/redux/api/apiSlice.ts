@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import type { RootState } from "../store"
 
 export interface Product {
-  id: number
+  _id: string
   name: string
   price: number
   image: string
@@ -125,12 +125,12 @@ export const apiSlice = createApi({
       invalidatesTags: ["Product"],
     }),
     updateProduct: builder.mutation({
-      query: ({ id, ...data }) => ({
-        url: `/products/${id}`,
+      query: ({ _id, ...data }) => ({
+        url: `/products/${_id}`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "Product", id }, "Product"],
+      invalidatesTags: (result, error, { _id }) => [{ type: "Product", id: _id }, "Product"],
     }),
     deleteProduct: builder.mutation({
       query: (id) => ({

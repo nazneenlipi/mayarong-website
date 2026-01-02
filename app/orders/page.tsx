@@ -1,3 +1,4 @@
+"use client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -52,7 +53,7 @@ export default function OrdersPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-lg">₹{order.total.toLocaleString("en-IN")}</p>
+                        <p className="font-semibold text-lg">₹{(order.total || 0).toLocaleString("en-IN")}</p>
                         <span
                           className={`text-sm font-medium px-3 py-1 rounded-full ${
                             order.status === "Delivered"

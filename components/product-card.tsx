@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 
 interface ProductCardProps {
   product: {
-    id: number
+    _id: string
     name: string
     price: number
     image: string
@@ -24,13 +24,14 @@ interface ProductCardProps {
 
 import { useDispatch } from "react-redux"
 import { addToCart } from "@/lib/redux/slices/cartSlice"
-import { useToast } from "@/components/ui/use-toast" // Assuming toast exists, otherwise simple alert or skip
+import { useToast } from "@/components/ui/use-toast"
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const { data: session } = useSession()
   const router = useRouter()
   const dispatch = useDispatch()
   const [isFavorite, setIsFavorite] = useState(false)
+  const { toast } = useToast()
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -38,19 +39,21 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     // if (!session) { router.push("/login"); return } 
     
     dispatch(addToCart({
-      id: product.id,
+      id: product._id,
       name: product.name,
       price: product.price,
       image: product.image,
       quantity: 1
     }))
     
-    // Fallback if toast not available or use simple confirm log
-    // console.log("Added to cart")
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} added to cart`,
+    })
   }
 
   return (
-    <Link href={`/products/${product.id}`}>
+    <Link href={`/products/${product._id}`}>
       <div className="group cursor-pointer">
         <div className="relative mb-4 rounded-lg overflow-hidden bg-gray-100 h-64">
           <Image

@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
 export interface CartItem {
-  id: number
+  id: string
   name: string
   price: number
   image: string
@@ -47,13 +47,13 @@ const cartSlice = createSlice({
         localStorage.setItem("maya_rang_cart", JSON.stringify(state.items))
       }
     },
-    removeFromCart: (state, action: PayloadAction<number>) => {
+    removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((item) => item.id !== action.payload)
       if (typeof window !== "undefined") {
         localStorage.setItem("maya_rang_cart", JSON.stringify(state.items))
       }
     },
-    updateQuantity: (state, action: PayloadAction<{ id: number; quantity: number }>) => {
+    updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
       const item = state.items.find((item) => item.id === action.payload.id)
       if (item) {
         item.quantity = Math.max(1, action.payload.quantity)

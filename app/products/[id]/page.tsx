@@ -13,6 +13,8 @@ import { useDispatch, useSelector } from "react-redux"
 import { addToCart } from "@/lib/redux/slices/cartSlice"
 import type { RootState } from "@/lib/redux/store"
 import { Loader } from "@/components/ui/loader"
+import { useToast } from "@/components/ui/use-toast"
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon"
 
 export default function ProductDetailsPage() {
   const params = useParams()
@@ -25,24 +27,27 @@ export default function ProductDetailsPage() {
   // Default to first color if available, or "Black"
   const [selectedColor, setSelectedColor] = useState("Black")
   const [quantity, setQuantity] = useState(1)
+  const { toast } = useToast()
 
   // Update selected color when product loads if needed (optional useEffect)
 
-  const relatedProducts = allProducts.filter((p) => p.id !== Number(productId)).slice(0, 3)
+  const relatedProducts = allProducts.filter((p) => p._id !== productId).slice(0, 3)
 
   const handleAddToCart = () => {
     if (!product) return
 
     dispatch(addToCart({
-      id: product.id,
+      id: product._id,
       name: product.name,
       price: product.price,
       image: product.image,
       quantity: quantity
     }))
     
-    // Optional feedback
-    // alert("Added to cart")
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} (x${quantity}) added to your cart.`,
+    })
   }
 
   if (isLoadingProduct) {
@@ -156,9 +161,15 @@ export default function ProductDetailsPage() {
                 >
                   Add to Cart
                 </GlassyButton>
-                <button className="px-6 py-4 border border-primary/30 rounded-lg hover:bg-primary/5 transition">
-                  <Share2 className="w-5 h-5 text-primary" />
-                </button>
+                
+                <a 
+                   href={`https://api.whatsapp.com/send?phone=8801712345678&text=${encodeURIComponent(`Hi, I'm interested in ${product.name}. Is it available?`)}`}
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="px-6 py-4 border border-green-500/30 bg-green-50/50 rounded-lg hover:bg-green-100/50 transition flex items-center justify-center text-green-600"
+                >
+                   <WhatsAppIcon className="w-6 h-6" />
+                </a>
               </div>
 
               <div className="mt-8 pt-8 border-t border-primary/20">
@@ -173,7 +184,7 @@ export default function ProductDetailsPage() {
             <h2 className="text-3xl font-bold text-primary mb-8">You Might Also Like</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {relatedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p._id} product={p} />
               ))}
             </div>
           </div>

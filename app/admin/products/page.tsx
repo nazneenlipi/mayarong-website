@@ -17,6 +17,16 @@ import Link from "next/link"
 import { ProductForm } from "@/components/admin/product-form"
 import Image from "next/image"
 import { Loader } from "@/components/ui/loader"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminProductsPage() {
   const router = useRouter()
@@ -35,12 +45,13 @@ export default function AdminProductsPage() {
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [productToDelete, setProductToDelete] = useState<string | null>(null)
 
   const handleSaveProduct = async (formData: any) => {
     try {
       if (editingProduct) {
         await updateProduct({ 
-          id: editingProduct.id, 
+          _id: editingProduct._id, 
           ...formData, 
           price: Number(formData.price), 
           stock: Number(formData.stock) 
@@ -63,10 +74,11 @@ export default function AdminProductsPage() {
     }
   }
 
-  const handleDeleteProduct = async (id: number) => {
-    if (confirm("Are you sure you want to delete this product?")) {
+  const confirmDelete = async () => {
+    if (productToDelete) {
       try {
-        await deleteProduct(id.toString()).unwrap()
+        await deleteProduct(productToDelete).unwrap()
+        setProductToDelete(null)
       } catch (error) {
         console.error("Failed to delete product:", error)
         alert("Failed to delete product")
@@ -123,7 +135,7 @@ export default function AdminProductsPage() {
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product.id} className="border-b border-primary/20 hover:bg-background transition">
+                  <tr key={product._id} className="border-b border-primary/20 hover:bg-background transition">
                     <td className="px-6 py-4 text-sm text-foreground font-semibold flex items-center gap-3">
                         {product.image && (
                             <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 border border-gray-200">
@@ -154,7 +166,7 @@ export default function AdminProductsPage() {
                         <Edit2 className="w-4 h-4" />
                       </Button>
                       <Button
-                        onClick={() => handleDeleteProduct(product.id)}
+                        onClick={() => setProductToDelete(product._id)}
                         variant="ghost"
                         size="sm"
                         className="text-red-600 hover:bg-red-50"
@@ -169,6 +181,22 @@ export default function AdminProductsPage() {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the product
+              and remove it from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
        {/* Add/Edit Product Modal */}
        {showAddModal && (
