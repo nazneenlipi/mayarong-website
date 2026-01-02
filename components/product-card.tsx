@@ -6,7 +6,6 @@ import Image from "next/image"
 import { Star, Heart } from "lucide-react"
 import { GlassyButton } from "@/components/glassy-button"
 import { useState } from "react"
-import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 interface ProductCardProps {
@@ -23,12 +22,12 @@ interface ProductCardProps {
   onAddToCart?: (product: any) => void
 }
 
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { addToCart } from "@/lib/redux/slices/cartSlice"
 import { useToast } from "@/components/ui/use-toast"
+import type { RootState } from "@/lib/redux/store"
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const { data: session } = useSession()
   const router = useRouter()
   const dispatch = useDispatch()
   const [isFavorite, setIsFavorite] = useState(false)
@@ -36,10 +35,15 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
   const mainImage = product.images && product.images.length > 0 ? product.images[0] : product.image
 
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
-    // Optional: Check login if required, but cart usually works without login
-    // if (!session) { router.push("/login"); return } 
+    
+    if (!isAuthenticated) {
+      router.push("/login")
+      return
+    }
     
     dispatch(addToCart({
       id: product._id,

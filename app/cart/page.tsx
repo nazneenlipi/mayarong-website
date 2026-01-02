@@ -10,9 +10,29 @@ import { useSelector, useDispatch } from "react-redux"
 import { removeFromCart, updateQuantity, clearCart } from "@/lib/redux/slices/cartSlice"
 import type { RootState } from "@/lib/redux/store"
 
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { Loader } from "@/components/ui/loader"
+
 export default function CartPage() {
   const dispatch = useDispatch()
-  const cartItems = useSelector((state: RootState) => state.cart.items) || []
+  const router = useRouter()
+  const { items: cartItems } = useSelector((state: RootState) => state.cart) || { items: [] }
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login")
+    }
+  }, [isAuthenticated, router])
+
+  if (!isAuthenticated) {
+      return (
+          <div className="min-h-screen flex items-center justify-center">
+              <Loader />
+          </div>
+      )
+  }
 
   const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
 

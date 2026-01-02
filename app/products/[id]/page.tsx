@@ -29,7 +29,7 @@ export default function ProductDetailsPage() {
   const productId = params.id as string
   const { data: product, isLoading: isLoadingProduct, error } = useGetProductQuery(productId)
   const { data: allProducts = [] } = useGetProductsQuery()
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
   const router = useRouter()
   // Default to first color if available, or "Black"
@@ -70,8 +70,15 @@ export default function ProductDetailsPage() {
   const images = product.images && product.images.length > 0 ? product.images : [product.image || "/placeholder.svg"]
   const displayImage = images[selectedImageIndex] || images[0]
 
+
+
   const handleAddToCart = () => {
     if (!product) return
+
+    if (!isAuthenticated) {
+      router.push("/login")
+      return
+    }
 
     dispatch(addToCart({
       id: product._id,
