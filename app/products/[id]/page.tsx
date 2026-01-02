@@ -5,8 +5,8 @@ import { Footer } from "@/components/footer"
 import { ProductCard } from "@/components/product-card"
 import { GlassyButton } from "@/components/glassy-button"
 import Image from "next/image"
-import { Heart, Share2, ShoppingCart, Star } from "lucide-react"
-import { useState } from "react"
+import { Heart, Share2, ShoppingCart, Star, X } from "lucide-react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useGetProductQuery, useGetProductsQuery } from "@/lib/redux/api/apiSlice"
 import { useDispatch, useSelector } from "react-redux"
@@ -15,6 +15,14 @@ import type { RootState } from "@/lib/redux/store"
 import { Loader } from "@/components/ui/loader"
 import { useToast } from "@/components/ui/use-toast"
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon"
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogClose,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 export default function ProductDetailsPage() {
   const params = useParams()
@@ -28,28 +36,17 @@ export default function ProductDetailsPage() {
   const [selectedColor, setSelectedColor] = useState("Black")
   const [quantity, setQuantity] = useState(1)
   const { toast } = useToast()
+  
+  // State for image gallery
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
-  // Update selected color when product loads if needed (optional useEffect)
+  // Reset selected image index when product changes
+  useEffect(() => {
+    setSelectedImageIndex(0)
+  }, [productId])
 
   const relatedProducts = allProducts.filter((p) => p._id !== productId).slice(0, 3)
-
-  const handleAddToCart = () => {
-    if (!product) return
-
-    dispatch(addToCart({
-      id: product._id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      quantity: quantity
-    }))
-    
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} (x${quantity}) added to your cart.`,
-    })
-  }
-
+  
   if (isLoadingProduct) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -70,6 +67,27 @@ export default function ProductDetailsPage() {
     )
   }
 
+  const images = product.images && product.images.length > 0 ? product.images : [product.image || "/placeholder.svg"]
+  const displayImage = images[selectedImageIndex] || images[0]
+
+  const handleAddToCart = () => {
+    if (!product) return
+
+    dispatch(addToCart({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      // Use the displaying image for the cart
+      image: displayImage,
+      quantity: quantity
+    }))
+    
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} (x${quantity}) added to your cart.`,
+    })
+  }
+
   // Effect to set initial color if needed, or rely on conditional rendering below
   const colors = product.colors || ["Standard"]
 
@@ -80,15 +98,65 @@ export default function ProductDetailsPage() {
       <main className="flex-grow bg-background py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
-            <div className="flex items-center justify-center">
-              <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
-                <Image src={product.image || "/placeholder.svg"} alt={product.name} fill className="object-cover" />
+            {/* Image Gallery Section */}
+            <div className="flex flex-col gap-4">
+               <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100 group">
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <div className="cursor-pointer w-full h-full relative">
+                            <Image 
+                                src={displayImage} 
+                                alt={product.name} 
+                                fill 
+                                className="object-cover transition duration-300 group-hover:scale-105" 
+                            />
+                            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="bg-white/80 px-3 py-1 rounded-full text-xs font-medium">Click to Zoom</span>
+                            </div>
+                        </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-transparent border-none shadow-none text-white">
+                        <DialogTitle className="sr-only">Product Image Zoom</DialogTitle>
+                        <div className="relative w-full h-[80vh]">
+                             <Image 
+                                src={displayImage} 
+                                alt={product.name} 
+                                fill 
+                                className="object-contain" 
+                            />
+                            <DialogClose className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition">
+                                <X className="w-5 h-5" />
+                            </DialogClose>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
                 {product.badge && (
-                  <div className="absolute top-4 right-4 bg-primary text-white px-4 py-2 rounded-full font-semibold">
+                  <div className="absolute top-4 right-4 bg-primary text-white px-4 py-2 rounded-full font-semibold pointer-events-none">
                     {product.badge}
                   </div>
                 )}
               </div>
+
+              {/* Thumbnails */}
+              {images.length > 1 && (
+                  <div className="grid grid-cols-5 gap-2">
+                       {images.map((img: string, idx: number) => (
+                           <div 
+                                key={idx} 
+                                onClick={() => setSelectedImageIndex(idx)}
+                                className={`cursor-pointer relative aspect-square rounded-md overflow-hidden border-2 transaction ${selectedImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-gray-300'}`}
+                           >
+                                <Image 
+                                    src={img} 
+                                    alt={`${product.name} ${idx + 1}`} 
+                                    fill 
+                                    className="object-cover" 
+                                />
+                           </div>
+                       ))}
+                  </div>
+              )}
             </div>
 
             <div className="flex flex-col justify-center">

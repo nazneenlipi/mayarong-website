@@ -15,6 +15,7 @@ interface ProductCardProps {
     name: string
     price: number
     image: string
+    images?: string[]
     rating: number
     reviews: number
     badge?: string
@@ -33,6 +34,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
   const { toast } = useToast()
 
+  const mainImage = product.images && product.images.length > 0 ? product.images[0] : product.image
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     // Optional: Check login if required, but cart usually works without login
@@ -42,7 +45,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       id: product._id,
       name: product.name,
       price: product.price,
-      image: product.image,
+      image: mainImage,
       quantity: 1
     }))
     
@@ -57,7 +60,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       <div className="group cursor-pointer">
         <div className="relative mb-4 rounded-lg overflow-hidden bg-gray-100 h-64">
           <Image
-            src={product.image || "/placeholder.svg"}
+            src={mainImage || "/placeholder.svg"}
             alt={product.name}
             fill
             className="object-cover group-hover:scale-105 transition duration-300"

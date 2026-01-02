@@ -18,7 +18,7 @@ export function ProductForm({ initialData, onSubmit, onCancel, isLoading }: Prod
     category: "",
     stock: "",
     description: "",
-    image: "/placeholder.svg",
+    images: [] as string[],
   })
 
   useEffect(() => {
@@ -29,23 +29,29 @@ export function ProductForm({ initialData, onSubmit, onCancel, isLoading }: Prod
         category: initialData.category || "",
         stock: initialData.stock ? initialData.stock.toString() : "",
         description: initialData.description || "",
-        image: initialData.image || "/placeholder.svg",
+        // Handle both new 'images' array and legacy 'image' string
+        images: initialData.images || (initialData.image ? [initialData.image] : []),
       })
     }
   }, [initialData])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    onSubmit({
+        ...formData,
+        // Send both for backward compatibility if backend expects 'image'
+        image: formData.images[0] || "",
+        images: formData.images
+    })
   }
 
   return (
     <div className="space-y-6">
        <div>
-            <label className="block text-sm font-medium mb-2">Product Image</label>
+            <label className="block text-sm font-medium mb-2">Product Images</label>
             <ImageUpload 
-                value={formData.image} 
-                onChange={(url) => setFormData({ ...formData, image: url })}
+                value={formData.images} 
+                onChange={(urls) => setFormData({ ...formData, images: urls })}
                 disabled={isLoading}
             />
        </div>
