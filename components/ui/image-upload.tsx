@@ -30,18 +30,19 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
     formData.append("file", file)
 
     try {
-        const response = await fetch("/api/upload", {
+        const response = await fetch("http://localhost:5000/api/v1/upload", {
             method: "POST",
             body: formData,
         })
 
         if (!response.ok) {
-            const errorData = await response.text()
-            throw new Error(errorData || "Upload failed")
+            const errorData = await response.json().catch(() => ({ message: "Upload failed" }))
+            throw new Error(errorData.message || "Upload failed")
         }
 
         const data = await response.json()
-        onChange(data.secure_url)
+        // Backend returns 'url' field, not 'secure_url'
+        onChange(data.url || data.secure_url)
     } catch (error: any) {
         console.error("Upload error:", error)
         alert(`Upload Failed: ${error.message}`)
