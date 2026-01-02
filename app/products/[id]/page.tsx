@@ -163,7 +163,7 @@ export default function ProductDetailsPage() {
                 </GlassyButton>
                 
                 <a 
-                   href={`https://api.whatsapp.com/send?phone=8801712345678&text=${encodeURIComponent(`Hi, I'm interested in ${product.name}. Is it available?`)}`}
+                   href={`https://api.whatsapp.com/send?phone=8801606208313&text=${encodeURIComponent(`Hi, I'm interested in ${product.name}. Is it available?`)}`}
                    target="_blank" 
                    rel="noopener noreferrer"
                    className="px-6 py-4 border border-green-500/30 bg-green-50/50 rounded-lg hover:bg-green-100/50 transition flex items-center justify-center text-green-600"

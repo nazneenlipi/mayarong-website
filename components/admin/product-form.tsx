@@ -83,10 +83,8 @@ export function ProductForm({ initialData, onSubmit, onCancel, isLoading }: Prod
                 className="w-full border border-primary/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 disabled={isLoading}
             >
-                <option value="">Select Category</option>
                 <option value="watches">Watches</option>
                 <option value="bags">Bags</option>
-                <option value="accessories">Accessories</option>
             </select>
         </div>
 

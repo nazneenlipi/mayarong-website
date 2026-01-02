@@ -18,14 +18,14 @@ export interface Product {
 }
 
 export interface User {
-  id: string
+  _id: string
   name: string
   email: string
   role: string
 }
 
 export interface Order {
-  id: string | number
+  _id: string
   date: string
   total: number
   status: string
@@ -36,7 +36,7 @@ export interface Order {
 }
 
 export interface Rating {
-  id: string | number
+  _id: string
   productId: number
   userName: string
   rating: number
@@ -46,7 +46,7 @@ export interface Rating {
 }
 
 export interface Review {
-  id: string | number
+  _id: string
   name: string
   email: string
   rating: number
@@ -188,8 +188,8 @@ export const apiSlice = createApi({
       invalidatesTags: ["Rating", "Product"],
     }),
     updateRating: builder.mutation({
-      query: ({ id, ...data }) => ({
-        url: `/ratings/${id}`,
+      query: ({ _id, ...data }) => ({
+        url: `/ratings/${_id}`,
         method: "PUT",
         body: data,
       }),
@@ -218,8 +218,8 @@ export const apiSlice = createApi({
       invalidatesTags: ["Review", "Product"],
     }),
     updateReview: builder.mutation({
-      query: ({ id, ...data }) => ({
-        url: `/reviews/${id}`,
+      query: ({ _id, ...data }) => ({
+        url: `/reviews/${_id}`,
         method: "PUT",
         body: data,
       }),

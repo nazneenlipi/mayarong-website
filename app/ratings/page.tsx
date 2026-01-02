@@ -179,7 +179,7 @@ export default function RatingsPage() {
               </div>
             ) : (
               reviews.map((review: Review) => (
-                <div key={review.id} className="rounded-xl border border-white/20 bg-white/30 backdrop-blur-md p-6">
+                <div key={review._id} className="rounded-xl border border-white/20 bg-white/30 backdrop-blur-md p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <p className="font-semibold text-lg">{review.name}</p>

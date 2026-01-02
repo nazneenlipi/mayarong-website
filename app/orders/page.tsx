@@ -42,12 +42,12 @@ export default function OrdersPage() {
               <div className="space-y-4">
                 {paginatedOrders.map((order: Order) => (
                   <div
-                    key={order.id}
+                    key={order._id}
                     className="bg-white rounded-lg border border-primary/20 p-6 hover:shadow-lg transition"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-lg text-primary">{order.id}</p>
+                        <p className="font-semibold text-lg text-primary">{order._id}</p>
                         <p className="text-sm text-foreground/60">
                           {order.date} • {order.items} item(s)
                         </p>
